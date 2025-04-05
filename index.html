@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Number Extractor</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #121212; color: white; text-align: center; }
+        .container { margin-top: 50px; }
+        button { padding: 10px 20px; margin-top: 10px; border-radius: 5px; cursor: pointer; background-color: #28a745; color: white; border: none; }
+        button:hover { background-color: #218838; }
+        .hidden { display: none; }
+        #progress { width: 100%; background: #444; height: 10px; margin-top: 10px; position: relative; }
+        #progress-bar { height: 100%; width: 0%; background: green; transition: width 0.3s ease; }
+        #cancel-btn { display: none; margin-top: 10px; background-color: #dc3545; }
+        #cancel-btn:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload a PDF to Extract Numbers</h2>
+        <form id="upload-form">
+            <input type="file" id="file-input" required>
+            <button type="submit">Upload</button>
+            <button type="button" id="cancel-btn">Cancel</button>
+        </form>
+        <div id="progress" class="hidden">
+            <div id="progress-bar"></div>
+        </div>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        let taskId = null;
+        document.getElementById('upload-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('file-input');
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData();
+            formData.append('pdf_file', fileInput.files[0]);
+            
+            const statusDiv = document.getElementById('status');
+            const progressBar = document.getElementById('progress-bar');
+            document.getElementById('progress').classList.remove('hidden');
+            document.getElementById('cancel-btn').style.display = 'inline-block';
+            statusDiv.textContent = "Processing...";
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/upload', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.error) {
+                    statusDiv.textContent = "Error: " + result.error;
+                } else {
+                    statusDiv.textContent = "Extraction Complete. Download available soon.";
+                }
+            } catch (error) {
+                statusDiv.textContent = "Upload failed.";
+            }
+        });
+    </script>
+</body>
+</html>
